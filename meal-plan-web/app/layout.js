@@ -22,16 +22,10 @@ export default function RootLayout({ children }) {
 									Ingredients
 								</a>
 								<span className="text-zinc-300">|</span>
-								<a
-									className="hover:underline opacity-60 pointer-events-none"
-									title="soon"
-								>
+								<a className="hover:underline" href="/planner">
 									Planner
 								</a>
-								<a
-									className="hover:underline opacity-60 pointer-events-none"
-									title="soon"
-								>
+								<a className="hover:underline" href="/shopping-list">
 									Shopping list
 								</a>
 							</nav>
