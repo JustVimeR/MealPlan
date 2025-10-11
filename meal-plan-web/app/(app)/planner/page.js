@@ -25,7 +25,7 @@ export default function PlannerPage() {
 			api(`/shopping-lists/${week}/generate`, { method: "POST" }),
 	});
 
-	const [editing, setEditing] = useState(null); // { dayIdx, meal }
+	const [editing, setEditing] = useState(null);
 	const [servingsDraft, setServingsDraft] = useState(2);
 
 	const days = useMemo(() => plan.data?.days ?? Array(7).fill({}), [plan.data]);

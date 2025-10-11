@@ -38,3 +38,49 @@
 	border-radius: 9999px;
 	background: #f3f4f6;
 }
+
+@media print {
+	.no-print {
+		display: none !important;
+	}
+	header,
+	nav {
+		display: none !important;
+	}
+	body {
+		background: #fff !important;
+	}
+	.container-1100 {
+		max-width: 100% !important;
+		padding: 0 12px !important;
+	}
+	.card {
+		border: none !important;
+		box-shadow: none !important;
+	}
+	.print-columns {
+		column-count: 2;
+		column-gap: 24px;
+	}
+	.print-group {
+		break-inside: avoid;
+		margin-bottom: 16px;
+	}
+	.print-group h3 {
+		margin: 0 0 8px 0;
+		padding: 0;
+	}
+	.print-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		padding: 2px 0;
+	}
+	.print-qty {
+		font-variant-numeric: tabular-nums;
+	}
+
+	input[type="checkbox"] {
+		display: none !important;
+	}
+}

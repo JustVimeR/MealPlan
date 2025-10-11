@@ -1,0 +1,16 @@
+export const CAT_ORDER = [
+	"vegetables",
+	"fruits",
+	"meat",
+	"fish",
+	"dairy",
+	"bakery",
+	"grains",
+	"oils",
+	"canned",
+	"frozen",
+	"spices",
+	"beverages",
+	"snacks",
+	"other",
+];

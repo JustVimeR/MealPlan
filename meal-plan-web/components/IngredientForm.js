@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { api } from "../lib/api";
+import { CAT_ORDER } from "../lib/categories";
 
 export default function IngredientForm({ onSuccess, compact = false }) {
 	const qc = useQueryClient();
@@ -70,12 +71,18 @@ export default function IngredientForm({ onSuccess, compact = false }) {
 					</div>
 					<div className="col-span-2">
 						<label className="text-sm">Category</label>
-						<input
+						<select
 							className="input mt-1"
 							value={category}
 							onChange={(e) => setCategory(e.target.value)}
-							placeholder="vegetables"
-						/>
+						>
+							{CAT_ORDER.map((cat) => (
+								<option key={cat} value={cat}>
+									{cat}
+								</option>
+							))}
+							+{" "}
+						</select>
 					</div>
 				</div>
 				<div className="grid grid-cols-4 gap-3">
