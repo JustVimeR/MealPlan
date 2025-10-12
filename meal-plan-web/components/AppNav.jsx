@@ -10,6 +10,7 @@ import {
 	BookOpen,
 	Plus,
 	Search,
+	Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -106,6 +107,9 @@ export default function AppNav({ user, children }) {
 						</NavItem>
 						<NavItem href="/library" icon={BookOpen}>
 							Public library
+						</NavItem>
+						<NavItem href="/ai" icon={Sparkles}>
+							AI Chat
 						</NavItem>
 					</nav>
 
