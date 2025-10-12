@@ -12,6 +12,7 @@ export class UsersService {
     return this.model
       .findById(new Types.ObjectId(userId))
       .select({
+        _id: 1,
         email: 1,
         displayName: 1,
         avatarUrl: 1,
@@ -53,7 +54,7 @@ export class UsersService {
       dietary?: string[];
       allergens?: string[];
     };
-    roles?: string[]; // ✅ нове поле
+    roles?: string[];
   }) {
     const doc = await this.model.create({
       email: input.email,

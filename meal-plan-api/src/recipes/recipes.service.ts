@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, Types } from 'mongoose';
 import { Recipe } from './schemas/recipe.schema';
@@ -194,13 +198,14 @@ export class RecipesService {
     };
     return this.model
       .find(filter)
-      .select({ publicSnapshot: 1 })
+      .select({ publicSnapshot: 1, userId: 1 })
       .sort({ 'publicSnapshot.title': 1 })
       .lean()
       .exec()
       .then((arr) =>
         arr.map((r) => ({
           _id: r._id,
+          ownerId: String(r.userId),
           ...r.publicSnapshot,
         })),
       );
@@ -263,8 +268,14 @@ export class RecipesService {
       })
       .lean()
       .exec();
+
     if (!src?.publicSnapshot)
       throw new NotFoundException('Public recipe not found');
+
+    // 🚫 Забороняємо форк власного рецепта
+    if (String(src.userId) === String(targetUserId)) {
+      throw new BadRequestException('You cannot fork your own recipe');
+    }
 
     const snapshot = src.publicSnapshot;
     const createdItems: {
