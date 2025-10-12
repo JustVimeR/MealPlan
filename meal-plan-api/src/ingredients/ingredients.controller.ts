@@ -2,41 +2,38 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
+  Param,
   Body,
   Query,
-  Param,
-  Patch,
-  Delete,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { IngredientsService } from './ingredients.service';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import type { Request } from 'express';
+import type { JwtPayload } from '../auth/jwt.strategy';
 
+type AuthRequest = Request & { user: JwtPayload };
+
+@UseGuards(JwtAuthGuard)
 @Controller('ingredients')
 export class IngredientsController {
   constructor(private readonly svc: IngredientsService) {}
 
-  @Post()
-  create(@Body() dto: CreateIngredientDto) {
-    return this.svc.create(dto);
-  }
-
   @Get()
-  findAll(@Query('q') q?: string, @Query('category') category?: string) {
-    return this.svc.findAll(q, category);
+  list(@Req() req: AuthRequest, @Query('q') q?: string) {
+    return this.svc.list(req.user.sub, q);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.svc.findOne(id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() patch: Partial<CreateIngredientDto>) {
-    return this.svc.update(id, patch);
+  @Post()
+  create(@Req() req: AuthRequest, @Body() dto: CreateIngredientDto) {
+    return this.svc.create(req.user.sub, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.svc.remove(id);
+  remove(@Req() req: AuthRequest, @Param('id') id: string) {
+    return this.svc.remove(req.user.sub, id);
   }
 }

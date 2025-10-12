@@ -2,42 +2,65 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
+  Param,
   Body,
   Query,
-  Param,
-  Patch,
-  Delete,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import type { Request } from 'express';
+import type { JwtPayload } from '../auth/jwt.strategy';
+
+type AuthRequest = Request & { user: JwtPayload };
 
 @Controller('recipes')
 export class RecipesController {
   constructor(private readonly svc: RecipesService) {}
 
-  @Post()
-  create(@Body() dto: CreateRecipeDto) {
-    return this.svc.create(dto);
-  }
-
+  // --------- Private (user) ---------
+  @UseGuards(JwtAuthGuard)
   @Get()
-  search(@Query('q') q?: string, @Query('tags') tags?: string) {
-    const tagArr = tags ? tags.split(',').filter(Boolean) : [];
-    return this.svc.search(q, tagArr);
+  list(@Req() req: AuthRequest, @Query('q') q?: string) {
+    return this.svc.list(req.user.sub, q);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.svc.findOne(id);
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  create(@Req() req: AuthRequest, @Body() dto: CreateRecipeDto) {
+    return this.svc.create(req.user.sub, dto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() patch: Partial<CreateRecipeDto>) {
-    return this.svc.update(id, patch);
-  }
-
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.svc.remove(id);
+  remove(@Req() req: AuthRequest, @Param('id') id: string) {
+    return this.svc.remove(req.user.sub, id);
+  }
+
+  // --------- Public library ---------
+  @Get('public')
+  listPublic(@Query('q') q?: string) {
+    return this.svc.listPublic(q);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/publish')
+  publish(@Req() req: AuthRequest, @Param('id') id: string) {
+    return this.svc.publish(req.user.sub, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/unpublish')
+  unpublish(@Req() req: AuthRequest, @Param('id') id: string) {
+    return this.svc.unpublish(req.user.sub, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/fork')
+  fork(@Req() req: AuthRequest, @Param('id') id: string) {
+    return this.svc.fork(req.user.sub, id);
   }
 }

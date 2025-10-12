@@ -60,6 +60,8 @@ export default function ProfilePage() {
 						className="btn btn-ghost"
 						onClick={() => {
 							setToken(null);
+
+							document.cookie = "mp_token=; Max-Age=0; Path=/; SameSite=Lax";
 							window.location.href = "/login";
 						}}
 					>
