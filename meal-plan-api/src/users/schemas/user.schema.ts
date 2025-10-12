@@ -3,19 +3,30 @@ import { HydratedDocument } from 'mongoose';
 
 @Schema({ _id: false })
 class MacroTargets {
-  @Prop({ default: 0 }) protein!: number; // г/добу
-  @Prop({ default: 0 }) fat!: number; // г/добу
-  @Prop({ default: 0 }) carb!: number; // г/добу
+  @Prop({ default: 0 }) protein!: number; // g/day
+  @Prop({ default: 0 }) fat!: number; // g/day
+  @Prop({ default: 0 }) carb!: number; // g/day
 }
+export const MacroTargetsSchema = SchemaFactory.createForClass(MacroTargets);
 
 @Schema({ _id: false })
 class Preferences {
-  @Prop({ default: 'metric' }) units!: 'metric' | 'imperial';
-  @Prop({ default: 'monday' }) weekStart!: 'monday' | 'sunday';
-  @Prop({ default: 'system' }) theme!: 'light' | 'dark' | 'system';
-  @Prop({ default: [] }) dietary!: string[]; // ['vegan','vegetarian','halal','kosher','keto',...]
-  @Prop({ default: [] }) allergens!: string[]; // ['peanut','gluten',...]
+  @Prop({ default: 'metric', enum: ['metric', 'imperial'] })
+  units!: 'metric' | 'imperial';
+
+  @Prop({ default: 'monday', enum: ['monday', 'sunday'] })
+  weekStart!: 'monday' | 'sunday';
+
+  @Prop({ default: 'system', enum: ['light', 'dark', 'system'] })
+  theme!: 'light' | 'dark' | 'system';
+
+  @Prop({ type: [String], default: [] })
+  dietary!: string[];
+
+  @Prop({ type: [String], default: [] })
+  allergens!: string[];
 }
+export const PreferencesSchema = SchemaFactory.createForClass(Preferences);
 
 @Schema({ timestamps: true })
 export class User {
@@ -25,12 +36,17 @@ export class User {
   @Prop() displayName?: string;
   @Prop() avatarUrl?: string;
 
-  // цілі
-  @Prop({ default: 0 }) calorieTarget!: number; // ккал/добу
-  @Prop({ type: MacroTargets, default: {} }) macroTargets!: MacroTargets;
+  @Prop({ default: 0 }) calorieTarget!: number; // kcal/day
 
-  // налаштування
-  @Prop({ type: Preferences, default: {} }) preferences!: Preferences;
+  @Prop({ type: MacroTargetsSchema, default: {} })
+  macroTargets!: MacroTargets;
+
+  @Prop({ type: PreferencesSchema, default: {} })
+  preferences!: Preferences;
+
+  // ✅ додали ролі
+  @Prop({ type: [String], default: [] })
+  roles!: string[];
 }
 
 export type UserDocument = HydratedDocument<User>;

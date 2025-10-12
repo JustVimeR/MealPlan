@@ -1,25 +1,36 @@
-import { Controller, Get, Patch, Body, UseGuards, Req } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { JwtAuthGuard } from '../auth/jwt.guard';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Req,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import type { Request } from 'express';
-import type { JwtPayload } from '../auth/jwt.strategy';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import type { JwtPayload } from '../auth/jwt.strategy';
 
 type AuthRequest = Request & { user: JwtPayload };
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
-  constructor(private readonly users: UsersService) {}
+  constructor(private readonly svc: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get('me')
   me(@Req() req: AuthRequest) {
-    return this.users.getByIdLean(req.user.sub);
+    return this.svc.getByIdLean(req.user.sub);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch('me')
-  updateMe(@Req() req: AuthRequest, @Body() dto: UpdateProfileDto) {
-    return this.users.updateById(req.user.sub, dto);
+  updateMe(
+    @Req() req: AuthRequest,
+    @Body(new ValidationPipe({ whitelist: true, transform: true }))
+    dto: UpdateProfileDto,
+  ) {
+    return this.svc.updateById(req.user.sub, dto);
   }
 }
