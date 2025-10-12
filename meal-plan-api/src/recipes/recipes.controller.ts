@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Req,
+  ValidationPipe,
 } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
@@ -17,6 +18,7 @@ import type { JwtPayload } from '../auth/jwt.strategy';
 
 type AuthRequest = Request & { user: JwtPayload };
 
+@UseGuards(JwtAuthGuard)
 @Controller('recipes')
 export class RecipesController {
   constructor(private readonly svc: RecipesService) {}
@@ -34,7 +36,11 @@ export class RecipesController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Req() req: AuthRequest, @Body() dto: CreateRecipeDto) {
+  create(
+    @Req() req: AuthRequest,
+    @Body(new ValidationPipe({ whitelist: true, transform: true }))
+    dto: CreateRecipeDto,
+  ) {
     return this.svc.create(req.user.sub, dto);
   }
 

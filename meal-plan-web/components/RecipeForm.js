@@ -25,7 +25,7 @@ export default function RecipeForm({ onClose }) {
 	});
 
 	function addItem() {
-		setItems((prev) => [...prev, { ingredientId: null, qty: "", unit: "g" }]);
+		setItems((prev) => [...prev, { ingredient: null, qty: "", unit: "g" }]);
 	}
 	function patchItem(i, patch) {
 		setItems((prev) =>
@@ -123,12 +123,15 @@ export default function RecipeForm({ onClose }) {
 									value={it.qty}
 									onChange={(e) => patchItem(i, { qty: e.target.value })}
 								/>
-								<input
+								<select
 									className="input col-span-2"
-									placeholder="unit (g/ml/pcs)"
 									value={it.unit}
 									onChange={(e) => patchItem(i, { unit: e.target.value })}
-								/>
+								>
+									<option value="g">g</option>
+									<option value="ml">ml</option>
+									<option value="pcs">pcs</option>
+								</select>
 								<button
 									className="col-span-1 text-red-500"
 									onClick={() => removeItem(i)}
