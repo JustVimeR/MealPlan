@@ -1,60 +1,68 @@
 "use client";
 
-export default function RecipeCard({ recipe, actions, compact = false }) {
-	const minutes = recipe.minutes ?? null;
-	const servings = recipe.servings ?? null;
-	const tags = Array.isArray(recipe.tags) ? recipe.tags : [];
+export default function RecipeCard({
+	recipe,
+	onPublish,
+	onUnpublish,
+	onDelete,
+}) {
+	const r = recipe;
+	const kcal = r?.nutritionPerServing?.kcal;
 
 	return (
-		<div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
-			<div className="flex items-start justify-between gap-4">
-				<div className="min-w-0">
-					<div className="flex items-center gap-2">
-						<h3 className="text-base font-semibold truncate">{recipe.title}</h3>
-						{recipe.isPublic ? (
-							<span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 border border-emerald-200">
-								Public
-							</span>
-						) : null}
-					</div>
-					<div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-zinc-600">
-						{minutes != null && <span>⏱ {minutes} min</span>}
-						{servings != null && <span>🍽 {servings} servings</span>}
-					</div>
+		<div className="card p-4 flex flex-col gap-3">
+			{/* Заголовок */}
+			<div>
+				<div className="text-base font-medium leading-snug line-clamp-2 break-words">
+					{r.title}
 				</div>
-				{actions}
+
+				{/* Рядок бейджів — окремо від заголовка, щоб нічого не перекривати */}
+				<div className="mt-1 flex flex-wrap items-center gap-2">
+					{r.isPublic && (
+						<span className="rounded-full bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5">
+							Published
+						</span>
+					)}
+					{typeof kcal === "number" && (
+						<span className="rounded-full bg-zinc-100 text-zinc-700 text-xs px-2 py-0.5">
+							{Math.round(kcal)} kcal/serv
+						</span>
+					)}
+					{r.minutes ? (
+						<span className="rounded-full bg-zinc-100 text-zinc-700 text-xs px-2 py-0.5">
+							{r.minutes} min
+						</span>
+					) : null}
+					<span className="text-xs text-zinc-500">
+						Servings: {r.servings ?? "—"}
+					</span>
+				</div>
 			</div>
 
-			{!compact && (
-				<>
-					{tags.length > 0 && (
-						<div className="mt-3 flex flex-wrap gap-2">
-							{tags.map((t) => (
-								<span
-									key={t}
-									className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-700"
-								>
-									#{t}
-								</span>
-							))}
-						</div>
-					)}
-					{"items" in recipe &&
-						Array.isArray(recipe.items) &&
-						recipe.items.length > 0 && (
-							<div className="mt-3 text-xs text-zinc-500 line-clamp-2">
-								{recipe.items
-									.slice(0, 4)
-									.map((i) =>
-										typeof i === "string" ? i : i.name ?? i.ingredientName ?? ""
-									)
-									.filter(Boolean)
-									.join(" • ")}
-								{recipe.items.length > 4 ? "…" : ""}
-							</div>
-						)}
-				</>
-			)}
+			{/* Теги */}
+			<div className="text-xs text-zinc-500 line-clamp-2">
+				{r.tags?.length ? r.tags.join(" · ") : "No tags"}
+			</div>
+
+			{/* Дії */}
+			<div className="mt-1 flex flex-wrap items-center gap-2">
+				{r.isPublic ? (
+					<button className="btn btn-ghost" onClick={() => onUnpublish(r._id)}>
+						Unpublish
+					</button>
+				) : (
+					<button className="btn btn-ghost" onClick={() => onPublish(r._id)}>
+						Publish
+					</button>
+				)}
+				<button
+					className="btn btn-ghost text-red-600"
+					onClick={() => onDelete(r._id)}
+				>
+					Delete
+				</button>
+			</div>
 		</div>
 	);
 }

@@ -52,48 +52,14 @@ export default function RecipesPage() {
 			)}
 
 			{recipes.data && recipes.data.length > 0 && (
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-					{recipes.data.map((r) => (
+				<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+					{(recipes.data ?? []).map((r) => (
 						<RecipeCard
 							key={r._id}
 							recipe={r}
-							actions={
-								<div className="flex items-center gap-2">
-									{r.nutritionPerServing && (
-										<span className="text-xs text-zinc-600">
-											{Math.round(r.nutritionPerServing.kcal)} kcal/serv
-										</span>
-									)}
-
-									{r.isPublic ? (
-										<button
-											className="btn btn-ghost"
-											onClick={() => unpublish.mutate(r._id)}
-											disabled={unpublish.isPending}
-											title="Unpublish"
-										>
-											Unpublish
-										</button>
-									) : (
-										<button
-											className="btn btn-ghost"
-											onClick={() => publish.mutate(r._id)}
-											disabled={publish.isPending}
-											title="Publish"
-										>
-											Publish
-										</button>
-									)}
-									<button
-										className="btn btn-ghost text-red-600"
-										onClick={() => remove.mutate(r._id)}
-										disabled={remove.isPending}
-										title="Delete"
-									>
-										Delete
-									</button>
-								</div>
-							}
+							onPublish={(id) => publish.mutate(id)}
+							onUnpublish={(id) => unpublish.mutate(id)}
+							onDelete={(id) => remove.mutate(id)}
 						/>
 					))}
 				</div>
