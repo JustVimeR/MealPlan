@@ -1,11 +1,14 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
+import { getToken } from "./auth";
 
 export async function api(path, { method = "GET", body, headers } = {}) {
+	const token = typeof window !== "undefined" ? getToken() : null;
 	const res = await fetch(`${API_BASE}${path}`, {
 		method,
 		headers: {
 			"Content-Type": "application/json",
 			...(headers || {}),
+			...(token ? { Authorization: `Bearer ${token}` } : {}),
 		},
 		body: body ? JSON.stringify(body) : undefined,
 		next: { revalidate: 0 },

@@ -24,8 +24,11 @@ export class MealPlansService {
     @InjectModel(Recipe.name) private recipeModel: Model<Recipe>,
   ) {}
 
-  async getForWeek(weekStartISO: string) {
-    const filter: FilterQuery<MealPlan> = { weekStartISO };
+  async getForWeek(weekStartISO: string, userId?: string) {
+    const filter: FilterQuery<MealPlan> = userId
+      ? { weekStartISO, userId: new Types.ObjectId(userId) }
+      : { weekStartISO };
+
     const doc = await this.model.findOne(filter).lean().exec();
     if (doc) return this.enrichWithRecipeTitles(doc);
 
@@ -36,8 +39,11 @@ export class MealPlansService {
     return { weekStartISO, days: emptyDays };
   }
 
-  async upsertForWeek(weekStartISO: string, dto: UpsertMealPlanDto) {
-    // map DayDto[] -> DayPlanShape[] (string -> ObjectId)
+  async upsertForWeek(
+    weekStartISO: string,
+    userId: string,
+    dto: UpsertMealPlanDto,
+  ) {
     const toSlot = (s?: { recipeId: string; servings: number }) =>
       s
         ? { recipeId: new Types.ObjectId(s.recipeId), servings: s.servings }
@@ -52,8 +58,8 @@ export class MealPlansService {
 
     const saved = await this.model
       .findOneAndUpdate(
-        { weekStartISO },
-        { $set: { days } },
+        { weekStartISO, userId: new Types.ObjectId(userId) },
+        { $set: { days, userId: new Types.ObjectId(userId) } },
         { upsert: true, new: true },
       )
       .lean()
@@ -62,7 +68,6 @@ export class MealPlansService {
     return this.enrichWithRecipeTitles(saved);
   }
 
-  /** Збагачуємо кожен слот метаданими рецепта (не зберігаємо в БД) */
   private async enrichWithRecipeTitles(doc: {
     weekStartISO: string;
     days: DayPlanShape[];

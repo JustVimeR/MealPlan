@@ -28,6 +28,9 @@ export default function RootLayout({ children }) {
 								<a className="hover:underline" href="/shopping-list">
 									Shopping list
 								</a>
+								<a className="hover:underline" href="/profile">
+									Profile
+								</a>
 							</nav>
 						</div>
 					</header>
