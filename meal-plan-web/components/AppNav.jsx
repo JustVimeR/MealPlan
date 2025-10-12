@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
 	CalendarDays,
 	Utensils,
@@ -11,9 +11,11 @@ import {
 	Plus,
 	Search,
 } from "lucide-react";
+import { useState } from "react";
 
 function NavItem({ href, icon: Icon, children }) {
 	const pathname = usePathname();
+
 	const active =
 		pathname === href || (href !== "/" && pathname?.startsWith(href));
 	return (
@@ -38,6 +40,15 @@ function NavItem({ href, icon: Icon, children }) {
 }
 
 export default function AppNav({ user, children }) {
+	const router = useRouter();
+	const [query, setQuery] = useState("");
+
+	const goSearch = (e) => {
+		e?.preventDefault?.();
+		const q = query.trim();
+		router.push(q ? `/recipes?q=${encodeURIComponent(q)}` : "/recipes");
+	};
+
 	return (
 		<div className="h-dvh w-full overflow-hidden grid grid-cols-1 lg:grid-cols-[18rem_1fr]">
 			<aside
@@ -56,13 +67,28 @@ export default function AppNav({ user, children }) {
 							<div className="font-semibold tracking-tight">MealPlan</div>
 						</Link>
 
-						<div className="relative mt-3">
+						<form onSubmit={goSearch} className="relative mt-3">
 							<Search className="h-4 w-4 text-zinc-400 absolute left-3 top-2.5" />
 							<input
-								className="w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10"
-								placeholder="Пошук…"
+								className="w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-9 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10"
+								placeholder="Пошук рецептів…"
+								value={query}
+								onChange={(e) => setQuery(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter") goSearch(e);
+								}}
 							/>
-						</div>
+							{query && (
+								<button
+									type="button"
+									aria-label="Clear"
+									onClick={() => setQuery("")}
+									className="absolute right-2 top-2 h-7 px-2 rounded-md text-zinc-500 hover:bg-zinc-100"
+								>
+									×
+								</button>
+							)}
+						</form>
 					</div>
 
 					<nav className="flex-1 min-h-0 overflow-y-auto p-4 pt-2 flex flex-col items-stretch gap-1.5">
