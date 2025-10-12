@@ -14,6 +14,11 @@ export default function PlannerPage() {
 		queryFn: () => api(`/meal-plans/${week}`),
 	});
 
+	const nutrition = useQuery({
+		queryKey: ["plan-nutrition", week],
+		queryFn: () => api(`/meal-plans/${week}/nutrition`),
+	});
+
 	const save = useMutation({
 		mutationFn: (days) =>
 			api(`/meal-plans/${week}`, { method: "PUT", body: { days } }),
@@ -84,6 +89,35 @@ export default function PlannerPage() {
 					</button>
 				</div>
 			</div>
+
+			{nutrition.data && (
+				<div className="card p-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+					<div>
+						<div className="text-xs text-zinc-500">Week kcal</div>
+						<div className="font-semibold">
+							{Math.round(nutrition.data.totals.kcal)}
+						</div>
+					</div>
+					<div>
+						<div className="text-xs text-zinc-500">Protein (g)</div>
+						<div className="font-semibold">
+							{Math.round(nutrition.data.totals.protein)}
+						</div>
+					</div>
+					<div>
+						<div className="text-xs text-zinc-500">Fat (g)</div>
+						<div className="font-semibold">
+							{Math.round(nutrition.data.totals.fat)}
+						</div>
+					</div>
+					<div>
+						<div className="text-xs text-zinc-500">Carbs (g)</div>
+						<div className="font-semibold">
+							{Math.round(nutrition.data.totals.carb)}
+						</div>
+					</div>
+				</div>
+			)}
 
 			<div className="overflow-x-auto">
 				<table className="w-full border-separate border-spacing-2">

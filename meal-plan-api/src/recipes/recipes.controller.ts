@@ -24,8 +24,12 @@ export class RecipesController {
   // --------- Private (user) ---------
   @UseGuards(JwtAuthGuard)
   @Get()
-  list(@Req() req: AuthRequest, @Query('q') q?: string) {
-    return this.svc.list(req.user.sub, q);
+  list(
+    @Req() req: AuthRequest,
+    @Query('q') q?: string,
+    @Query('withNutrition') withNutrition?: string,
+  ) {
+    return this.svc.list(req.user.sub, q, withNutrition === '1');
   }
 
   @UseGuards(JwtAuthGuard)
@@ -62,5 +66,10 @@ export class RecipesController {
   @Post(':id/fork')
   fork(@Req() req: AuthRequest, @Param('id') id: string) {
     return this.svc.fork(req.user.sub, id);
+  }
+
+  @Get(':id/nutrition')
+  getNutrition(@Req() req: AuthRequest, @Param('id') id: string) {
+    return this.svc.getRecipeNutrition(req.user.sub, id);
   }
 }

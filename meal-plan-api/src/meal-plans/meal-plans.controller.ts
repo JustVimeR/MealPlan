@@ -33,4 +33,10 @@ export class MealPlansController {
   ) {
     return this.svc.upsertForWeek(week, req.user.sub, dto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':weekStartISO/nutrition')
+  nutrition(@Req() req: AuthRequest, @Param('weekStartISO') week: string) {
+    return this.svc.getWeekNutrition(week, req.user.sub);
+  }
 }

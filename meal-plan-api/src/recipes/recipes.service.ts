@@ -5,13 +5,19 @@ import { Recipe } from './schemas/recipe.schema';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { Ingredient } from '../ingredients/schemas/ingredient.schema';
 
-// TS-тип для публічного снепшота (щоб уникнути any)
 type PublicSnapshotShape = {
   title: string;
   minutes?: number;
   servings: number;
   tags: string[];
   items: { name: string; unit: string; qty: number }[];
+};
+
+export type NutritionTotals = {
+  kcal: number;
+  protein: number;
+  fat: number;
+  carb: number;
 };
 
 @Injectable()
@@ -21,7 +27,7 @@ export class RecipesService {
     @InjectModel(Ingredient.name) private ingModel: Model<Ingredient>,
   ) {}
 
-  list(userId: string, q?: string) {
+  async list(userId: string, q?: string, withNutrition = false) {
     const filter: FilterQuery<Recipe> = {
       userId: new Types.ObjectId(userId),
       ...(q
@@ -38,7 +44,28 @@ export class RecipesService {
           }
         : {}),
     };
-    return this.model.find(filter).sort({ title: 1 }).lean().exec();
+    const rows = await this.model.find(filter).sort({ title: 1 }).lean().exec();
+
+    if (!withNutrition) return rows;
+
+    // Чітко типізований масив, щоб не було `never[]`
+    const enriched = await Promise.all(
+      rows.map(async (r) => {
+        const n = await this.computeRecipeNutrition(userId, String(r._id));
+        return {
+          ...r,
+          nutrition: n,
+          nutritionPerServing: this.perServing(n, r.servings),
+        };
+      }),
+    );
+
+    return enriched as Array<
+      (typeof rows)[number] & {
+        nutrition: NutritionTotals;
+        nutritionPerServing: NutritionTotals;
+      }
+    >;
   }
 
   create(userId: string, dto: CreateRecipeDto) {
@@ -60,6 +87,95 @@ export class RecipesService {
       .exec();
     if (!res) throw new NotFoundException('Recipe not found');
     return { ok: true };
+  }
+
+  // ---------- Nutrition ----------
+
+  async getRecipeNutrition(userId: string, recipeId: string) {
+    const totals = await this.computeRecipeNutrition(userId, recipeId);
+    const recipe = await this.model
+      .findOne({
+        _id: new Types.ObjectId(recipeId),
+        userId: new Types.ObjectId(userId),
+      })
+      .lean()
+      .exec();
+    if (!recipe) throw new NotFoundException('Recipe not found');
+    return {
+      recipeId,
+      servings: recipe.servings,
+      totals,
+      perServing: this.perServing(totals, recipe.servings),
+    };
+  }
+
+  private perServing(t: NutritionTotals, servings: number): NutritionTotals {
+    const s = servings > 0 ? servings : 1;
+    return {
+      kcal: Number((t.kcal / s).toFixed(1)),
+      protein: Number((t.protein / s).toFixed(1)),
+      fat: Number((t.fat / s).toFixed(1)),
+      carb: Number((t.carb / s).toFixed(1)),
+    };
+  }
+
+  private async computeRecipeNutrition(
+    userId: string,
+    recipeId: string,
+  ): Promise<NutritionTotals> {
+    const recipe = await this.model
+      .findOne({
+        _id: new Types.ObjectId(recipeId),
+        userId: new Types.ObjectId(userId),
+      })
+      .lean()
+      .exec();
+    if (!recipe) throw new NotFoundException('Recipe not found');
+
+    const ingIds = Array.from(
+      new Set(recipe.items.map((i) => String(i.ingredientId))),
+    );
+    const ings = await this.ingModel
+      .find({
+        _id: { $in: ingIds.map((id) => new Types.ObjectId(id)) },
+        userId: new Types.ObjectId(userId),
+      })
+      .lean()
+      .exec();
+    const byId = new Map(ings.map((i) => [String(i._id), i]));
+
+    let kcal = 0,
+      protein = 0,
+      fat = 0,
+      carb = 0;
+
+    for (const it of recipe.items) {
+      const ing = byId.get(String(it.ingredientId));
+      if (!ing) continue;
+
+      let factor = 0;
+      if (ing.unit === 'g' && it.unit === 'g') factor = it.qty / 100;
+      else if (ing.unit === 'ml' && it.unit === 'ml') factor = it.qty / 100;
+      else if (ing.unit === 'pcs' && it.unit === 'pcs') factor = it.qty;
+      else continue;
+
+      const k = ing.kcalPer100 ?? 0;
+      const p = ing.proteinPer100 ?? 0;
+      const f = ing.fatPer100 ?? 0;
+      const c = ing.carbPer100 ?? 0;
+
+      kcal += k * factor;
+      protein += p * factor;
+      fat += f * factor;
+      carb += c * factor;
+    }
+
+    return {
+      kcal: Number(kcal.toFixed(1)),
+      protein: Number(protein.toFixed(1)),
+      fat: Number(fat.toFixed(1)),
+      carb: Number(carb.toFixed(1)),
+    };
   }
 
   // ---------- Public library ----------
@@ -97,7 +213,6 @@ export class RecipesService {
     });
     if (!recipe) throw new NotFoundException('Recipe not found');
 
-    // зберемо снепшот з назв інгредієнтів
     const ingIds = Array.from(
       new Set(recipe.items.map((i) => String(i.ingredientId))),
     ).map((id) => new Types.ObjectId(id));
@@ -120,7 +235,6 @@ export class RecipesService {
       })),
     };
 
-    // присвоюємо без any
     recipe.isPublic = true;
     recipe.publicSnapshot = snapshot as unknown as NonNullable<
       Recipe['publicSnapshot']

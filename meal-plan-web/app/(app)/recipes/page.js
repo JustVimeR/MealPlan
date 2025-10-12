@@ -7,8 +7,8 @@ export default function RecipesPage() {
 	const qc = useQueryClient();
 
 	const recipes = useQuery({
-		queryKey: ["recipes"],
-		queryFn: () => api("/recipes"),
+		queryKey: ["recipes", "withNutrition"],
+		queryFn: () => api("/recipes?withNutrition=1"),
 	});
 
 	const publish = useMutation({
@@ -59,6 +59,12 @@ export default function RecipesPage() {
 							recipe={r}
 							actions={
 								<div className="flex items-center gap-2">
+									{r.nutritionPerServing && (
+										<span className="text-xs text-zinc-600">
+											{Math.round(r.nutritionPerServing.kcal)} kcal/serv
+										</span>
+									)}
+
 									{r.isPublic ? (
 										<button
 											className="btn btn-ghost"
