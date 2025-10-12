@@ -25,15 +25,18 @@ export default function IngredientsPage() {
 		<div className="grid gap-4">
 			<div className="flex items-center justify-between">
 				<div className="text-lg font-semibold">Ingredients</div>
-				<div className="flex gap-2">
+				<div className="flex items-center gap-2">
 					<input
-						className="input w-64"
+						className="input w-56 h-9 px-3 py-1.5 text-sm"
 						placeholder="Search…"
 						value={q}
 						onChange={(e) => setQ(e.target.value)}
 					/>
-					<button className="btn btn-primary" onClick={() => setShowNew(true)}>
-						+ New
+					<button
+						className="btn btn-primary h-9 px-3 text-sm"
+						onClick={() => setShowNew(true)}
+					>
+						New
 					</button>
 				</div>
 			</div>
