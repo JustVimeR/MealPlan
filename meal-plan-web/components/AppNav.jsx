@@ -11,6 +11,7 @@ import {
 	Plus,
 	Search,
 	Sparkles,
+	LogOut,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -43,6 +44,14 @@ function NavItem({ href, icon: Icon, children }) {
 export default function AppNav({ user, children }) {
 	const router = useRouter();
 	const [query, setQuery] = useState("");
+	const goLogin = () => router.push("/login");
+	const onLogout = () => {
+		try {
+			localStorage.removeItem("mp_token");
+		} catch {}
+		router.push("/login");
+		router.refresh?.();
+	};
 
 	const goSearch = (e) => {
 		e?.preventDefault?.();
@@ -122,29 +131,51 @@ export default function AppNav({ user, children }) {
 							New recipe
 						</Link>
 
-						<Link
-							href="/profile"
-							className="flex items-center gap-3 rounded-xl px-3 py-2 border border-zinc-200 hover:bg-zinc-100 transition"
-						>
-							<img
-								src={
-									user?.avatarUrl ||
-									`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
-										user?.displayName || user?.email || "U"
-									)}`
-								}
-								alt=""
-								className="h-7 w-7 rounded-xl object-cover border border-zinc-200 bg-white"
-							/>
-							<div className="min-w-0">
-								<div className="text-sm font-medium truncate">
-									{user?.displayName || "Profile"}
-								</div>
-								<div className="text-xs text-zinc-500 truncate">
-									{user?.email}
-								</div>
-							</div>
-						</Link>
+						{user ? (
+							<>
+								<Link
+									href="/profile"
+									className="flex items-center gap-3 rounded-xl px-3 py-2 border border-zinc-200 hover:bg-zinc-100 transition"
+								>
+									<img
+										src={
+											user?.avatarUrl ||
+											`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
+												user?.displayName || user?.email || "U"
+											)}`
+										}
+										alt=""
+										className="h-7 w-7 rounded-xl object-cover border border-zinc-200 bg-white"
+									/>
+									<div className="min-w-0">
+										<div className="text-sm font-medium truncate">
+											{user?.displayName || "Profile"}
+										</div>
+										<div className="text-xs text-zinc-500 truncate">
+											{user?.email}
+										</div>
+									</div>
+								</Link>
+
+								<button
+									onClick={onLogout}
+									className="flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm transition border border-zinc-200 hover:bg-zinc-100 text-red-600 hover:text-red-700"
+									aria-label="Log out"
+								>
+									<LogOut className="h-4 w-4" />
+									Log out
+								</button>
+							</>
+						) : (
+							<button
+								onClick={goLogin}
+								className="flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm transition border border-zinc-200 hover:bg-zinc-100"
+								aria-label="Sign in"
+								type="button"
+							>
+								Sign in
+							</button>
+						)}
 					</div>
 				</div>
 			</aside>
